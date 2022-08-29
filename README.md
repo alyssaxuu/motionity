@@ -1,7 +1,7 @@
 # Motionity
 
-![Preview](preview.gif)<br>
-The web-based motion graphics editor for everyone 🎞
+![Preview](preview.gif)<br><br>
+The web-based motion graphics editor for everyone 📽
 
 Motionity is a free and open source animation editor in the web. It's a mix of After Effects and Canva, with powerful features like keyframing, masking, filters, and more, and integrations to browse for assets to easily drag and drop into your video.
 
