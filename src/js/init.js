@@ -72,7 +72,11 @@ var shiftkeys = [];
 var shiftdown = false;
 var cliptype = "object";
 var chromaslider, noiseslider, blurslider;
-const eyeDropper = new EyeDropper();
+var isChrome = (window.chrome && Object.values(window.chrome).length !== 0)
+var eyeDropper;
+if (isChrome) {
+	eyeDropper = new EyeDropper();
+}
 var presets = [
 	{name:"Dribbble shot", id:"dribbble", width:1600, height:1200},
 	{name:"Facebook post", id:"facebook", width:1280, height:720},
