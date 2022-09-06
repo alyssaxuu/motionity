@@ -5,167 +5,182 @@ var stream;
 var rec;
 var track;
 
-			function timeout(ms) {
-				return new Promise(resolve => setTimeout(resolve, ms));
-		}
+function timeout(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function initRecorder() {
-	stream =  document.getElementById("canvasrecord").captureStream(0);
-	track = stream.getVideoTracks()[0];
+  stream = document.getElementById('canvasrecord').captureStream(0);
+  track = stream.getVideoTracks()[0];
 
-	if (!track.requestFrame) {
-		track.requestFrame = () => stream.requestFrame();
-	}
+  if (!track.requestFrame) {
+    track.requestFrame = () => stream.requestFrame();
+  }
 
-	rec = new MediaRecorder(stream, {
-		bitsPerSecond : 3200000,
-	});
+  rec = new MediaRecorder(stream, {
+    bitsPerSecond: 3200000,
+  });
 
-	rec.ondataavailable =  function(evt){
-		console.log("chunky")
-		 chunks.push(evt.data);
-	}
+  rec.ondataavailable = function (evt) {
+    console.log('chunky');
+    chunks.push(evt.data);
+  };
 
+  rec.start();
 
-	rec.start();
+  console.log('Recorder has been started');
 
-	console.log("Recorder has been started")
-
-	rec.onstart = function() {
-		rec.pause();
-		console.log("start!")
-	}
-
+  rec.onstart = function () {
+    rec.pause();
+    console.log('start!');
+  };
 }
 
 async function recordFrame() {
-		console.log(frame)
+  console.log(frame);
 
-		waitForEvent(rec, 'pause');
+  waitForEvent(rec, 'pause');
 
-		//rec.onpause = async function(e) {
+  //rec.onpause = async function(e) {
 
-		// wake up the recorder
-		rec.resume();
-		recordAnimate(false, (frame/FPS)*1000)
-		//animate(false, (frame/FPS)*1000)
-		// force write the frame
-		track.requestFrame();
+  // wake up the recorder
+  rec.resume();
+  recordAnimate(false, (frame / FPS) * 1000);
+  //animate(false, (frame/FPS)*1000)
+  // force write the frame
+  track.requestFrame();
 
-		// wait until our frame-time elapsed
-		await timeout(1000/FPS)
+  // wait until our frame-time elapsed
+  await timeout(1000 / FPS);
 
-
-		// sleep recorder
-		rec.pause();
-		//}
+  // sleep recorder
+  rec.pause();
+  //}
 }
 
 async function exportRecording() {
-	rec.stop();
-	stream.getTracks().forEach((track) => track.stop());
-	await waitForEvent(rec, "stop");
-	return new Blob(chunks);
+  rec.stop();
+  stream.getTracks().forEach((track) => track.stop());
+  await waitForEvent(rec, 'stop');
+  return new Blob(chunks);
 }
 
 // Record canvas
 async function record() {
-	updateRecordCanvas();
-	if ($("input[name=radio]:checked").val() == "image") {
-		recording = true;
-		paused = true;
-		animate(false, currenttime);
-		const dataURL = canvasrecord.toDataURL({
-					format: 'png',
-		});
-		const link = document.createElement('a');
-		link.download = 'image.png';
-		link.href = dataURL;
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
-		recording = false;
-	} else {
+  updateRecordCanvas();
+  if ($('input[name=radio]:checked').val() == 'image') {
+    recording = true;
+    paused = true;
+    animate(false, currenttime);
+    const dataURL = canvasrecord.toDataURL({
+      format: 'png',
+    });
+    const link = document.createElement('a');
+    link.download = 'image.png';
+    link.href = dataURL;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    recording = false;
+  } else {
     if (!recording) {
-			recording = true;
-			paused = true;
-			recordAnimate(false, (frame/FPS)*1000)
-			recording = true;
-			$("#download-real").html("Rendering...");
-			$("#download-real").addClass("downloading");
-			var fps = 60;
-			var aCtx = new AudioContext();
-			function audioTimerLoop(callback, frequency) {
-					var freq = frequency / 1000;
-					var silence = aCtx.createGain();
-					silence.gain.value = 0;
-					silence.connect(aCtx.destination);
-					onOSCend();
-					var stopped = false;
-					function onOSCend() {
-							osc = aCtx.createOscillator();
-							osc.onended = onOSCend;
-							osc.connect(silence);
-							osc.start(0);
-							osc.stop(aCtx.currentTime + freq);
-							callback(aCtx.currentTime);
-							if (stopped) {
-									osc.onended = function() {
-											return;
-									};
-							}
-					};
-					return function() {
-					stopped = true;
-					};
-			}
-			var stopAnim = audioTimerLoop(renderAnim, 1000/(fps));
-			var stream = document.getElementById("canvasrecord").captureStream(fps);
-			objects.forEach(function(object){
-					if (canvasrecord.getItemById(object.id).get("assetType") && canvasrecord.getItemById(object.id).get("assetType") == "video") {
-							var audio = $(canvasrecord.getItemById(object.id).getElement())[0];
-							var audioContext = new AudioContext();
-							var audioSource = audioContext.createMediaElementSource(audio);
-							var audioDestination = audioContext.createMediaStreamDestination();
-							audioSource.connect(audioDestination);
-							stream.addTrack(audioDestination.stream.getAudioTracks()[0]);
-					}
-			})
-			if (background_audio != false) {
-					var audioContext = new AudioContext();
-					var audioSource = audioContext.createMediaElementSource(background_audio);
-					var audioDestination = audioContext.createMediaStreamDestination();
-					audioSource.connect(audioDestination);
-					stream.addTrack(audioDestination.stream.getAudioTracks()[0]);
-					background_audio.currentTime = 0;
-					background_audio.play();
-			}
-			let chunks = [];
-			var recorder = new MediaRecorder(stream, {
-				bitsPerSecond : 3200000,
-			});
-			recorder.ondataavailable = e => chunks.push(e.data);
-			recorder.onstop = e => {
-					stopAnim();
-					downloadRecording(chunks);
-					animate(false, 0);
-					$("#seekbar").offset({left:offset_left+$("#inner-timeline").offset().left+(currenttime/timelinetime)});
-					canvas.renderAll();
-					console.log("Finished rendering")
-			}
-			recorder.start();
+      recording = true;
+      paused = true;
+      recordAnimate(false, (frame / FPS) * 1000);
+      recording = true;
+      $('#download-real').html('Rendering...');
+      $('#download-real').addClass('downloading');
+      var fps = 60;
+      var aCtx = new AudioContext();
+      function audioTimerLoop(callback, frequency) {
+        var freq = frequency / 1000;
+        var silence = aCtx.createGain();
+        silence.gain.value = 0;
+        silence.connect(aCtx.destination);
+        onOSCend();
+        var stopped = false;
+        function onOSCend() {
+          osc = aCtx.createOscillator();
+          osc.onended = onOSCend;
+          osc.connect(silence);
+          osc.start(0);
+          osc.stop(aCtx.currentTime + freq);
+          callback(aCtx.currentTime);
+          if (stopped) {
+            osc.onended = function () {
+              return;
+            };
+          }
+        }
+        return function () {
+          stopped = true;
+        };
+      }
+      var stopAnim = audioTimerLoop(renderAnim, 1000 / fps);
+      var stream = document
+        .getElementById('canvasrecord')
+        .captureStream(fps);
+      objects.forEach(function (object) {
+        if (
+          canvasrecord.getItemById(object.id).get('assetType') &&
+          canvasrecord.getItemById(object.id).get('assetType') ==
+            'video'
+        ) {
+          var audio = $(
+            canvasrecord.getItemById(object.id).getElement()
+          )[0];
+          var audioContext = new AudioContext();
+          var audioSource =
+            audioContext.createMediaElementSource(audio);
+          var audioDestination =
+            audioContext.createMediaStreamDestination();
+          audioSource.connect(audioDestination);
+          stream.addTrack(
+            audioDestination.stream.getAudioTracks()[0]
+          );
+        }
+      });
+      if (background_audio != false) {
+        var audioContext = new AudioContext();
+        var audioSource =
+          audioContext.createMediaElementSource(background_audio);
+        var audioDestination =
+          audioContext.createMediaStreamDestination();
+        audioSource.connect(audioDestination);
+        stream.addTrack(audioDestination.stream.getAudioTracks()[0]);
+        background_audio.currentTime = 0;
+        background_audio.play();
+      }
+      let chunks = [];
+      var recorder = new MediaRecorder(stream, {
+        bitsPerSecond: 3200000,
+      });
+      recorder.ondataavailable = (e) => chunks.push(e.data);
+      recorder.onstop = (e) => {
+        stopAnim();
+        downloadRecording(chunks);
+        animate(false, 0);
+        $('#seekbar').offset({
+          left:
+            offset_left +
+            $('#inner-timeline').offset().left +
+            currenttime / timelinetime,
+        });
+        canvas.renderAll();
+        console.log('Finished rendering');
+      };
+      recorder.start();
 
-			setTimeout(function() {
-					recorder.stop();
-			}, duration)
+      setTimeout(function () {
+        recorder.stop();
+      }, duration);
 
-			async function renderAnim(time) {
-					await recordAnimate(time*1000);
-			} 
-	}
+      async function renderAnim(time) {
+        await recordAnimate(time * 1000);
+      }
+    }
+  }
 }
-}
-
 
 /*
 
@@ -206,7 +221,6 @@ async function record() {
 				return wait(Math.random() * 300)
 					.then(recordAnimate((frame/FPS)*1000));
 			}*/
-
 
 /*
 paused = true;
