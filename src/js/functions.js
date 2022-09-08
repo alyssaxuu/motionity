@@ -5634,6 +5634,12 @@ function resetHeight() {
 
 // Dragging timeline vertically
 function dragTimeline(e) {
+  const disableselect = (e) => {  
+    return false  
+  }  
+  document.onselectstart = disableselect  
+  document.onmousedown = disableselect
+  
   oldtimelinepos = e.pageY;
   if (e.which == 3) {
     return false;
