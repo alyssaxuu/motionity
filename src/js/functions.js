@@ -3030,7 +3030,7 @@ function renderLayer(object, animate = false) {
         src +
         "><input class='layer-custom-name' value='" +
         objects.find((x) => x.id == object.get('id')).label +
-        "' disabled></span><div class='layer-options'><img class='" +
+        "' readonly></span><div class='layer-options'><img class='" +
         freeze +
         "' src='assets/" +
         freeze +
@@ -3044,7 +3044,7 @@ function renderLayer(object, animate = false) {
         src +
         "><input class='layer-custom-name' value='" +
         objects.find((x) => x.id == object.get('id')).label +
-        "' disabled></span><div class='layer-options'><img class='lock " +
+        "' readonly></span><div class='layer-options'><img class='lock " +
         classlock +
         "' src='assets/" +
         srclock +

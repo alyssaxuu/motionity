@@ -1647,7 +1647,7 @@ $(document).on('mousedown', '.delete-media', deleteMedia);
 
 // Save layer name
 function saveLayerName() {
-  $('.name-active').prop('disabled', true);
+  $('.name-active').prop('readonly', true);
   if ($('.name-active').val() == '') {
     $('.name-active').val('Untitled layer');
   }

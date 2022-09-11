@@ -737,7 +737,7 @@ $(document).ready(function () {
 
   // Change layer name
   $(document).on('dblclick', '.layer-custom-name', function () {
-    $(this).prop('disabled', false);
+    $(this).prop('readonly', false);
     $(this).addClass('name-active');
     $(this).focus();
     document.execCommand('selectAll', false, null);
