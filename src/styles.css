@@ -812,7 +812,7 @@ body {
   background-color: var(--panel-back);
   border-left: 1px solid var(--panel-stroke);
   z-index: 999;
-  overflow-y: overlay;
+  overflow-y: scroll;
 }
 #properties-overlay {
   width: 100%;
